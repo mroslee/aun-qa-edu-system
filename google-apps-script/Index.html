@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบประกันคุณภาพหลักสูตร AUN-QA | คณะศึกษาศาสตร์</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Sarabun & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+    h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Prompt', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col text-slate-800 antialiased">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shadow-inner">
+            <i class="fa-solid fa-graduation-cap text-2xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="bg-amber-500 text-blue-950 text-xs font-bold px-2 py-0.5 rounded tracking-wide uppercase">AUN-QA v4</span>
+              <span class="text-xs text-blue-200 hidden sm:inline">ระบบสารสนเทศประกันคุณภาพหลักสูตร</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              คณะศึกษาศาสตร์
+            </h1>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- Role Switcher -->
+          <div class="bg-blue-900/60 p-1 rounded-xl border border-blue-800/80 flex items-center text-xs">
+            <button id="btnRoleQA" class="role-btn active px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 bg-blue-600 text-white shadow">
+              <i class="fa-solid fa-shield-halved text-amber-300"></i>
+              <span>ฝ่ายประกันคุณภาพ</span>
+            </button>
+            <button id="btnRoleDept" class="role-btn px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 text-blue-200 hover:text-white">
+              <i class="fa-solid fa-chalkboard-user text-emerald-300"></i>
+              <span>สาขาวิชา / หลักสูตร</span>
+            </button>
+          </div>
+
+          <!-- Live Badge -->
+          <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Google Apps Script Live</span>
+          </div>
+
+          <!-- Google Sheet Link -->
+          <a href="https://docs.google.com/spreadsheets/d/1V1RVt-2YWWApHWQeYmDqT1ttmZSIldLGgR84k7cW7Q4/edit?usp=sharing" target="_blank" rel="noopener noreferrer" 
+             class="hidden md:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium transition shadow-sm border border-emerald-500/30">
+            <i class="fa-solid fa-table"></i>
+            <span>Google Sheets</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-3 border-t border-indigo-900/60 overflow-x-auto py-2 scrollbar-none no-print">
+        <button data-tab="tracking" class="tab-btn active px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-white bg-blue-700/60 shadow-sm">
+          <i class="fa-solid fa-list-check text-amber-400"></i>
+          <span>ติดตามความก้าวหน้ารายสาขา (QA Tracker)</span>
+        </button>
+        <button data-tab="dashboard" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-chart-pie text-cyan-400"></i>
+          <span>แผงควบคุมภาพรวม (Dashboard)</span>
+        </button>
+        <button data-tab="sar" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-file-shield text-blue-400"></i>
+          <span>รายงาน SAR 8 เกณฑ์</span>
+        </button>
+        <button data-tab="department-entry" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-pen-to-square text-rose-400"></i>
+          <span>สาขาวิชากรอกข้อมูล / ส่งงาน</span>
+        </button>
+        <button data-tab="curriculum" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-book-open text-emerald-400"></i>
+          <span>ข้อมูลหลักสูตร & PLOs</span>
+        </button>
+        <button data-tab="faculty" class="tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-users text-purple-400"></i>
+          <span>อาจารย์ & สถิตินักศึกษา</span>
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Role Notice Banner -->
+  <div id="roleNoticeBanner" class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white text-xs py-2 px-4 shadow-sm hidden no-print">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>ท่านกำลังอยู่ในโหมด: <strong class="text-amber-300">ตัวแทนสาขาวิชา / ผู้รับผิดชอบหลักสูตร</strong> สามารถเลือกหลักสูตรของตนเองเพื่อกรอกและแก้ไขข้อมูล</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Top Filter Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-6 flex flex-wrap items-center justify-between gap-4 no-print">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <label for="curriculumSelector" class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-filter text-blue-600"></i> เลือกหลักสูตร / สาขาวิชา:
+        </label>
+        <select id="curriculumSelector" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 min-w-[280px]">
+          <option value="">กำลังโหลดหลักสูตร...</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-3 ml-auto">
+        <button id="btnRefreshData" class="inline-flex items-center space-x-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
+          <span>รีเฟรชข้อมูล</span>
+        </button>
+        <button id="btnPrintReport" class="inline-flex items-center space-x-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-sm font-medium transition">
+          <i class="fa-solid fa-print"></i>
+          <span>พิมพ์รายงาน SAR</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: QA TRACKING -->
+    <div id="tab-tracking" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-slate-500">หลักสูตรทั้งหมด</span>
+          <div class="text-3xl font-extrabold text-slate-800 mt-2" id="kpiTotalCurs">0</div>
+          <p class="text-xs text-slate-500 mt-1">คณะศึกษาศาสตร์</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-emerald-600">ส่งรายงานเรียบร้อยแล้ว</span>
+          <div class="text-3xl font-extrabold text-emerald-600 mt-2" id="kpiSubmittedCurs">0</div>
+          <p class="text-xs text-emerald-600 mt-1" id="kpiSubmittedPercent">0% ของคณะ</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-amber-600">อยู่ระหว่างกรอก / ฉบับร่าง</span>
+          <div class="text-3xl font-extrabold text-amber-600 mt-2" id="kpiInProgressCurs">0</div>
+          <p class="text-xs text-amber-600 mt-1">กำลังรวบรวมหลักฐาน</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-rose-600">ยังไม่เริ่มดำเนินการ</span>
+          <div class="text-3xl font-extrabold text-rose-600 mt-2" id="kpiNotStartedCurs">0</div>
+          <p class="text-xs text-rose-600 mt-1">จำเป็นต้องติดตาม</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-list text-blue-600"></i> ตารางติดตามสถานะการส่งข้อมูลประกันคุณภาพรายสาขาวิชา
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100 text-xs uppercase font-semibold text-slate-700">
+              <tr>
+                <th class="px-4 py-3 rounded-l-lg">หลักสูตร / สาขาวิชา</th>
+                <th class="px-3 py-3 text-center">ระดับ</th>
+                <th class="px-4 py-3">ความคืบหน้า (%)</th>
+                <th class="px-3 py-3 text-center">เกณฑ์ที่ประเมิน</th>
+                <th class="px-3 py-3 text-center">ไฟล์หลักฐาน</th>
+                <th class="px-4 py-3">สถานะ</th>
+                <th class="px-4 py-3">อัปเดตล่าสุด</th>
+                <th class="px-4 py-3 rounded-r-lg text-center">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="trackingTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-gradient-to-br from-blue-900 to-indigo-800 text-white rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-blue-200 text-xs font-semibold">
+            <span>คะแนนเฉลี่ย AUN-QA รวม</span>
+            <span class="bg-amber-400 text-blue-950 px-2 py-0.5 rounded font-bold">เต็ม 7</span>
+          </div>
+          <div class="text-4xl font-extrabold text-amber-400 mt-2" id="statOverallScore">0.00</div>
+          <p class="text-xs text-blue-100 mt-1" id="statScoreLabel">ระดับ: กำลังประมวลผล</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-slate-500">เกณฑ์ที่ผ่านเกณฑ์ (>= 4.0)</span>
+          <div class="text-3xl font-extrabold text-slate-800 mt-2"><span id="statPassingCriteria">0</span> / 8</div>
+          <p class="text-xs text-emerald-600 mt-1 font-medium">เป็นไปตามมาตรฐานที่คาดหวัง</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-slate-500">จำนวนนักศึกษาปัจจุบัน</span>
+          <div class="text-3xl font-extrabold text-slate-800 mt-2" id="statTotalStudents">0</div>
+          <p class="text-xs text-slate-500 mt-1">ครอบคลุมทุกชั้นปี</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+          <span class="text-xs uppercase font-semibold text-slate-500">อาจารย์ประจำหลักสูตร</span>
+          <div class="text-3xl font-extrabold text-slate-800 mt-2" id="statFacultyCount">0</div>
+          <p class="text-xs text-purple-600 mt-1 font-medium">มีผลงานวิชาการต่อเนื่อง</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col">
+          <h2 class="text-base font-bold text-slate-800 mb-2">แผนภูมิตรวจสอบเกณฑ์ AUN-QA ทั้ง 8 ด้าน (Radar Chart)</h2>
+          <div class="relative flex-1 min-h-[340px] flex items-center justify-center">
+            <canvas id="aunQaRadarChart"></canvas>
+          </div>
+        </div>
+        <div class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col">
+          <h2 class="text-base font-bold text-slate-800 mb-2">คะแนนรายเกณฑ์ AUN-QA (ระดับ 1 - 7)</h2>
+          <div class="relative flex-1 min-h-[340px] flex items-center justify-center">
+            <canvas id="aunQaBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">ผลการประเมินแยกตามเกณฑ์ AUN-QA 8 ด้าน</h2>
+        <div id="criteriaCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SAR REPORT -->
+    <div id="tab-sar" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+        <div class="border-b border-slate-200 pb-4 mb-6 text-center">
+          <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full uppercase">Self-Assessment Report (SAR)</span>
+          <h2 id="sarDocTitle" class="text-2xl font-extrabold text-slate-900 mt-2">รายงานการประเมินตนเองตามเกณฑ์ AUN-QA</h2>
+          <p id="sarDocSubtitle" class="text-slate-600 mt-1 font-medium">คณะศึกษาศาสตร์</p>
+          <div class="mt-2 text-xs text-slate-500">
+            ปีการศึกษา: <strong id="sarDocYear" class="text-slate-800">-</strong> | คะแนนเฉลี่ย: <strong id="sarDocAvgScore" class="text-slate-800">-</strong>
+          </div>
+        </div>
+        <div class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">บทสรุปผู้บริหาร</h3>
+          <p id="sarExecutiveSummary" class="text-xs text-slate-700 leading-relaxed">-</p>
+        </div>
+        <div id="sarDetailedCriteriaList" class="space-y-4"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: DEPARTMENT ENTRY -->
+    <div id="tab-department-entry" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-6 shadow-md">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs uppercase font-bold px-2 py-0.5 rounded bg-amber-400 text-blue-950">Department Portal</span>
+            <h2 class="text-xl font-bold mt-2" id="deptPortalTitle">พื้นที่กรอกข้อมูลของสาขาวิชา</h2>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20 min-w-[220px]">
+            <div class="flex items-center justify-between text-xs mb-1 font-medium">
+              <span>ความครบถ้วน:</span>
+              <strong id="deptCompletionBadge" class="text-amber-300 font-bold">0%</strong>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+              <div id="deptProgressBar" class="bg-emerald-400 h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+        <form id="departmentFullForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold mb-1">ชื่อหลักสูตรภาษาไทย *</label>
+              <input type="text" id="deptCurriculumName" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">ปีการศึกษาที่ประเมิน *</label>
+              <input type="text" id="deptAcademicYear" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">ชื่อผู้ส่งรายงาน / ประธานหลักสูตร *</label>
+              <input type="text" id="deptSubmittedBy" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">อีเมลผู้รับผิดชอบหลักสูตร *</label>
+              <input type="email" id="deptChairEmail" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+            </div>
+          </div>
+
+          <div id="deptCriteriaInputsList" class="space-y-4"></div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" id="btnSaveDraft" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium">
+              บันทึกฉบับร่าง
+            </button>
+            <button type="submit" id="btnSubmitToQA" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">
+              ยืนยันส่งรายงานให้ฝ่ายประกันคุณภาพ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 5: CURRICULUMS -->
+    <div id="tab-curriculum" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">รายชื่อหลักสูตรในคณะศึกษาศาสตร์</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100 text-xs uppercase font-semibold text-slate-700">
+              <tr>
+                <th class="px-4 py-3 rounded-l-lg">ชื่อหลักสูตร</th>
+                <th class="px-4 py-3">ระดับ</th>
+                <th class="px-4 py-3">ปีปรับปรุง</th>
+                <th class="px-4 py-3">หน่วยกิต</th>
+                <th class="px-4 py-3">อีเมลประธานหลักสูตร</th>
+                <th class="px-4 py-3 rounded-r-lg">คะแนน ELOs</th>
+              </tr>
+            </thead>
+            <tbody id="curriculumTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: FACULTY -->
+    <div id="tab-faculty" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">คณาจารย์และผลงานทางวิชาการ (เกณฑ์ที่ 5)</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100 text-xs uppercase font-semibold text-slate-700">
+              <tr>
+                <th class="px-4 py-3 rounded-l-lg">ชื่ออาจารย์</th>
+                <th class="px-4 py-3">หลักสูตร</th>
+                <th class="px-4 py-3">คุณวุฒิ</th>
+                <th class="px-4 py-3">สาขาวิชา</th>
+                <th class="px-4 py-3 rounded-r-lg">ผลงานทางวิชาการ</th>
+              </tr>
+            </thead>
+            <tbody id="facultyTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-slate-400 text-xs">
+    ระบบประกันคุณภาพการศึกษาตามเกณฑ์ AUN-QA | คณะศึกษาศาสตร์
+  </footer>
+
+  <!-- Embedded Apps Script Logic -->
+  <script>
+    // Embedded Data directly from Apps Script execution context
+    let LIVE_DATA = <?!= JSON.stringify(appData) ?>;
+
+    let appState = {
+      activeRole: 'qa',
+      activeTab: 'tracking',
+      selectedCurriculum: '',
+      allData: LIVE_DATA || { curriculums: [], sarReports: [], studentStats: [], faculty: [], tracking: [] },
+      radarChart: null,
+      barChart: null
+    };
+
+    const CRITERIA = [
+      { id: 1, no: "เกณฑ์ที่ 1", title: "ผลการเรียนรู้ที่คาดหวัง (PLOs)" },
+      { id: 2, no: "เกณฑ์ที่ 2", title: "โครงสร้างและเนื้อหาหลักสูตร" },
+      { id: 3, no: "เกณฑ์ที่ 3", title: "การจัดการเรียนการสอนเน้นผู้เรียน" },
+      { id: 4, no: "เกณฑ์ที่ 4", title: "การประเมินผู้เรียน" },
+      { id: 5, no: "เกณฑ์ที่ 5", title: "คุณภาพอาจารย์" },
+      { id: 6, no: "เกณฑ์ที่ 6", title: "การบริการและสนับสนุนนักศึกษา" },
+      { id: 7, no: "เกณฑ์ที่ 7", title: "สิ่งอำนวยความสะดวก" },
+      { id: 8, no: "เกณฑ์ที่ 8", title: "ผลลัพธ์การดำเนินงาน" }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initRoles();
+      initTabs();
+      initDepartmentInputs();
+      populateDropdown();
+      renderAll();
+
+      document.getElementById("curriculumSelector")?.addEventListener("change", (e) => {
+        appState.selectedCurriculum = e.target.value;
+        renderCurriculumSpecificViews();
+      });
+
+      document.getElementById("btnRefreshData")?.addEventListener("click", () => {
+        showToast("กำลังรีเฟรชข้อมูล...", "info");
+        google.script.run
+          .withSuccessHandler((res) => {
+            appState.allData = res;
+            populateDropdown();
+            renderAll();
+            showToast("รีเฟรชข้อมูลสำเร็จ!", "success");
+          })
+          .apiGetAllData();
+      });
+
+      document.getElementById("btnPrintReport")?.addEventListener("click", () => {
+        switchTab("sar");
+        setTimeout(() => window.print(), 300);
+      });
+
+      document.getElementById("departmentFullForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        saveDepartmentData("ส่งรายงานแล้ว");
+      });
+
+      document.getElementById("btnSaveDraft")?.addEventListener("click", () => {
+        saveDepartmentData("ฉบับร่าง");
+      });
+    });
+
+    function initRoles() {
+      const btnQA = document.getElementById("btnRoleQA");
+      const btnDept = document.getElementById("btnRoleDept");
+      const banner = document.getElementById("roleNoticeBanner");
+
+      btnQA?.addEventListener("click", () => {
+        appState.activeRole = "qa";
+        btnQA.className = "role-btn active px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 bg-blue-600 text-white shadow";
+        btnDept.className = "role-btn px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 text-blue-200 hover:text-white";
+        banner?.classList.add("hidden");
+        switchTab("tracking");
+      });
+
+      btnDept?.addEventListener("click", () => {
+        appState.activeRole = "dept";
+        btnDept.className = "role-btn active px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 bg-emerald-600 text-white shadow";
+        btnQA.className = "role-btn px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 text-blue-200 hover:text-white";
+        banner?.classList.remove("hidden");
+        switchTab("department-entry");
+      });
+    }
+
+    function initTabs() {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => switchTab(btn.getAttribute("data-tab")));
+      });
+    }
+
+    function switchTab(tabId) {
+      appState.activeTab = tabId;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        if (btn.getAttribute("data-tab") === tabId) {
+          btn.className = "tab-btn active px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-white bg-blue-700/60 shadow-sm";
+        } else {
+          btn.className = "tab-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-white/5";
+        }
+      });
+      document.querySelectorAll(".tab-content").forEach(c => {
+        if (c.id === `tab-${tabId}`) c.classList.remove("hidden");
+        else c.classList.add("hidden");
+      });
+      if (tabId === "dashboard") setTimeout(renderCharts, 100);
+    }
+
+    function populateDropdown() {
+      const sel = document.getElementById("curriculumSelector");
+      if (!sel) return;
+      const list = appState.allData.curriculums || [];
+      if (list.length === 0) {
+        sel.innerHTML = '<option value="">ไม่มีข้อมูลหลักสูตร</option>';
+        return;
+      }
+      sel.innerHTML = list.map((c, i) => `<option value="${c.nameTh}" ${i === 0 ? "selected" : ""}>${c.nameTh}</option>`).join("");
+      if (!appState.selectedCurriculum && list.length > 0) {
+        appState.selectedCurriculum = list[0].nameTh;
+      }
+    }
+
+    function renderAll() {
+      renderTracking();
+      renderCurriculumSpecificViews();
+      renderCurriculumTable();
+      renderFacultyTable();
+    }
+
+    function renderTracking() {
+      const tracking = appState.allData.tracking || [];
+      const total = tracking.length;
+      const submitted = tracking.filter(t => t.status === "ส่งรายงานแล้ว").length;
+      const inProgress = tracking.filter(t => t.status === "กำลังกรอกข้อมูล" || t.status === "ฉบับร่าง").length;
+      const notStarted = tracking.filter(t => t.status === "ยังไม่เริ่ม").length;
+
+      document.getElementById("kpiTotalCurs").textContent = total;
+      document.getElementById("kpiSubmittedCurs").textContent = submitted;
+      document.getElementById("kpiInProgressCurs").textContent = inProgress;
+      document.getElementById("kpiNotStartedCurs").textContent = notStarted;
+      document.getElementById("kpiSubmittedPercent").textContent = total > 0 ? `${Math.round((submitted/total)*100)}% ของคณะ` : "0%";
+
+      const tbody = document.getElementById("trackingTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = tracking.map(t => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 font-bold text-xs">${t.curriculumName}</td>
+          <td class="px-3 py-3 text-center text-xs"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700">${t.degreeLevel || "ป.ตรี"}</span></td>
+          <td class="px-4 py-3 min-w-[130px]">
+            <div class="text-[11px] font-bold mb-1">${t.completionPercent}%</div>
+            <div class="w-full bg-slate-200 rounded-full h-1.5">
+              <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${t.completionPercent}%"></div>
+            </div>
+          </td>
+          <td class="px-3 py-3 text-center text-xs font-bold">${t.criteriaFilledCount || "0/8"}</td>
+          <td class="px-3 py-3 text-center text-xs font-bold">${t.evidenceCount || "0/8"}</td>
+          <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${t.status === 'ส่งรายงานแล้ว' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">${t.status}</span></td>
+          <td class="px-4 py-3 text-[11px] text-slate-500">${t.updatedAt || "-"}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="reviewSAR('${t.curriculumName}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-medium">ตรวจดู</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.reviewSAR = function(name) {
+      appState.selectedCurriculum = name;
+      const sel = document.getElementById("curriculumSelector");
+      if (sel) sel.value = name;
+      renderCurriculumSpecificViews();
+      switchTab("sar");
+    };
+
+    function renderCurriculumSpecificViews() {
+      const curName = appState.selectedCurriculum;
+      const sar = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName) || (appState.allData.sarReports || [])[0];
+      const cur = (appState.allData.curriculums || []).find(c => c.nameTh === curName);
+
+      if (sar) {
+        document.getElementById("statOverallScore").textContent = (parseFloat(sar.overallScore) || 0).toFixed(2);
+        document.getElementById("statPassingCriteria").textContent = (sar.criteria || []).filter(c => c.score >= 4).length;
+        document.getElementById("sarDocTitle").textContent = "รายงาน SAR AUN-QA: " + (sar.curriculumNameTh || "");
+        document.getElementById("sarDocYear").textContent = sar.academicYear || "2566";
+        document.getElementById("sarDocAvgScore").textContent = (parseFloat(sar.overallScore) || 0).toFixed(2) + " / 7";
+        document.getElementById("sarExecutiveSummary").textContent = sar.executiveSummary || "-";
+
+        const sarList = document.getElementById("sarDetailedCriteriaList");
+        if (sarList) {
+          sarList.innerHTML = (sar.criteria || []).map(c => `
+            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+              <div class="flex items-center justify-between font-bold text-xs text-blue-900 mb-1">
+                <span>เกณฑ์ที่ ${c.id}: ${c.name}</span>
+                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">คะแนน: ${c.score} / 7</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-1">${c.content || "ไม่มีข้อมูล"}</p>
+              ${c.evidence ? `<div class="mt-2 text-[11px]"><a href="${c.evidence}" target="_blank" class="text-blue-600 hover:underline"><i class="fa-solid fa-link"></i> หลักฐานอ้างอิง</a></div>` : ""}
+            </div>
+          `).join("");
+        }
+
+        const cards = document.getElementById("criteriaCardsGrid");
+        if (cards) {
+          cards.innerHTML = (sar.criteria || []).map(c => `
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+              <div class="flex items-center justify-between font-bold">
+                <span class="text-blue-900">เกณฑ์ที่ ${c.id}</span>
+                <span class="text-emerald-600 font-extrabold">${c.score} / 7</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${c.name}</p>
+            </div>
+          `).join("");
+        }
+
+        renderCharts();
+      }
+
+      if (cur) {
+        document.getElementById("deptCurriculumName").value = cur.nameTh || "";
+        document.getElementById("deptAcademicYear").value = (sar && sar.academicYear) || "2566";
+        document.getElementById("deptChairEmail").value = cur.chairEmail || "";
+      }
+    }
+
+    function renderCharts() {
+      const curName = appState.selectedCurriculum;
+      const sar = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName) || (appState.allData.sarReports || [])[0];
+      if (!sar || !sar.criteria) return;
+
+      const scores = sar.criteria.map(c => parseFloat(c.score) || 0);
+      const labels = sar.criteria.map(c => `เกณฑ์ ${c.id}`);
+
+      const radarCtx = document.getElementById("aunQaRadarChart");
+      if (radarCtx) {
+        if (appState.radarChart) appState.radarChart.destroy();
+        appState.radarChart = new Chart(radarCtx, {
+          type: "radar",
+          data: {
+            labels: labels,
+            datasets: [
+              { label: "คะแนนจริง", data: scores, backgroundColor: "rgba(30, 58, 138, 0.2)", borderColor: "#1e3a8a", borderWidth: 2 },
+              { label: "เกณฑ์เป้าหมาย (4.0)", data: [4,4,4,4,4,4,4,4], borderColor: "#10b981", borderWidth: 1.5, borderDash: [4,4], pointRadius: 0 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 7, ticks: { stepSize: 1 } } } }
+        });
+      }
+
+      const barCtx = document.getElementById("aunQaBarChart");
+      if (barCtx) {
+        if (appState.barChart) appState.barChart.destroy();
+        appState.barChart = new Chart(barCtx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{ label: "คะแนน 1-7", data: scores, backgroundColor: "#0284c7", borderRadius: 4 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 7 } }, plugins: { legend: { display: false } } }
+        });
+      }
+    }
+
+    function renderCurriculumTable() {
+      const tbody = document.getElementById("curriculumTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = (appState.allData.curriculums || []).map(c => `
+        <tr class="hover:bg-slate-50 text-xs">
+          <td class="px-4 py-3 font-bold">${c.nameTh}</td>
+          <td class="px-4 py-3">${c.degreeLevel || "ป.ตรี"}</td>
+          <td class="px-4 py-3">${c.revisionYear || "-"}</td>
+          <td class="px-4 py-3">${c.totalCredits || "-"} นก.</td>
+          <td class="px-4 py-3 font-mono">${c.chairEmail || "-"}</td>
+          <td class="px-4 py-3 text-emerald-600 font-bold">${c.ploScore || "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderFacultyTable() {
+      const tbody = document.getElementById("facultyTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = (appState.allData.faculty || []).map(f => `
+        <tr class="hover:bg-slate-50 text-xs">
+          <td class="px-4 py-3 font-bold">${f.fullName}</td>
+          <td class="px-4 py-3">${f.curriculumNameTh}</td>
+          <td class="px-4 py-3">${f.degree || "-"}</td>
+          <td class="px-4 py-3">${f.field || "-"}</td>
+          <td class="px-4 py-3">${f.publications || "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function initDepartmentInputs() {
+      const container = document.getElementById("deptCriteriaInputsList");
+      if (!container) return;
+      container.innerHTML = CRITERIA.map(c => `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-blue-900">
+            <span>${c.no}: ${c.title}</span>
+            <select id="crit_score_${c.id}" class="bg-white border border-slate-300 rounded p-1 font-bold">
+              ${[1,2,3,4,5,6,7].map(num => `<option value="${num}" ${num===4?'selected':''}>ระดับ ${num}</option>`).join("")}
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+            <textarea id="crit_content_${c.id}" rows="2" placeholder="ผลการดำเนินงาน..." class="w-full bg-white border border-slate-300 rounded p-1.5"></textarea>
+            <input type="url" id="crit_evidence_${c.id}" placeholder="ลิงก์ Google Drive หลักฐาน..." class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono">
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function saveDepartmentData(status) {
+      const curName = document.getElementById("deptCurriculumName").value;
+      const year = document.getElementById("deptAcademicYear").value;
+      const submittedBy = document.getElementById("deptSubmittedBy").value;
+      const chairEmail = document.getElementById("deptChairEmail").value;
+
+      const criteria = [];
+      let sum = 0;
+      for (let i = 1; i <= 8; i++) {
+        const sc = parseFloat(document.getElementById(`crit_score_${i}`).value) || 0;
+        const ct = document.getElementById(`crit_content_${i}`).value;
+        const ev = document.getElementById(`crit_evidence_${i}`).value;
+        sum += sc;
+        criteria.push({ id: i, name: CRITERIA[i-1].title, score: sc, content: ct, evidence: ev });
+      }
+
+      const payload = {
+        status: status,
+        submittedBy: submittedBy,
+        completionPercent: 100,
+        curriculum: { nameTh: curName, revisionYear: year, chairEmail: chairEmail },
+        sar: { curriculumNameTh: curName, academicYear: year, criteria: criteria, overallScore: (sum/8).toFixed(2) }
+      };
+
+      showToast("กำลังบันทึกลง Google Sheet...", "info");
+      google.script.run
+        .withSuccessHandler((res) => {
+          showToast(status === "ส่งรายงานแล้ว" ? "ส่งรายงานให้ฝ่ายประกันคุณภาพเรียบร้อย!" : "บันทึกร่างสำเร็จ!", "success");
+          google.script.run.withSuccessHandler(r => { appState.allData = r; renderAll(); }).apiGetAllData();
+        })
+        .apiSubmitDepartmentData(payload);
+    }
+
+    function showToast(msg, type) {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const t = document.createElement("div");
+      t.className = `${type==='success'?'bg-emerald-600':type==='error'?'bg-rose-600':'bg-slate-800'} text-white px-4 py-2 rounded-xl text-xs shadow-lg transition-all`;
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+  </script>
+</body>
+</html>
