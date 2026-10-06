@@ -545,44 +545,91 @@
       switchTab("sar");
     };
 
+    function getCurriculumSAR(curName) {
+      const existing = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName);
+      if (existing) return existing;
+      const cur = (appState.allData.curriculums || []).find(c => c.nameTh === curName);
+      return {
+        curriculumNameTh: curName,
+        academicYear: (cur && cur.revisionYear) || "2566",
+        isPending: true,
+        overallScore: 0,
+        executiveSummary: (cur && cur.executiveSummary) ? cur.executiveSummary : "อยู่ระหว่างการจัดทำรายงานการประเมินตนเองของหลักสูตร",
+        criteria: [
+          { id: 1, name: "ผลการเรียนรู้ที่คาดหวัง (PLOs)", score: 0, content: "" },
+          { id: 2, name: "โครงสร้างและเนื้อหาหลักสูตร", score: 0, content: "" },
+          { id: 3, name: "การจัดการเรียนการสอนเน้นผู้เรียน", score: 0, content: "" },
+          { id: 4, name: "การประเมินผู้เรียน", score: 0, content: "" },
+          { id: 5, name: "คุณภาพอาจารย์", score: 0, content: "" },
+          { id: 6, name: "การบริการและสนับสนุนนักศึกษา", score: 0, content: "" },
+          { id: 7, name: "สิ่งอำนวยความสะดวก", score: 0, content: "" },
+          { id: 8, name: "ผลลัพธ์การดำเนินงาน", score: 0, content: "" }
+        ]
+      };
+    }
+
     function renderCurriculumSpecificViews() {
       const curName = appState.selectedCurriculum;
-      const sar = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName) || (appState.allData.sarReports || [])[0];
+      const sar = getCurriculumSAR(curName);
       const cur = (appState.allData.curriculums || []).find(c => c.nameTh === curName);
+      const isEvaluated = sar && !sar.isPending && (parseFloat(sar.overallScore) || 0) > 0;
 
       if (sar) {
         document.getElementById("statOverallScore").textContent = (parseFloat(sar.overallScore) || 0).toFixed(2);
-        document.getElementById("statPassingCriteria").textContent = (sar.criteria || []).filter(c => c.score >= 4).length;
+        document.getElementById("statPassingCriteria").textContent = isEvaluated ? (sar.criteria || []).filter(c => c.score >= 4).length : 0;
         document.getElementById("sarDocTitle").textContent = "รายงาน SAR AUN-QA: " + (sar.curriculumNameTh || "");
         document.getElementById("sarDocYear").textContent = sar.academicYear || "2566";
-        document.getElementById("sarDocAvgScore").textContent = (parseFloat(sar.overallScore) || 0).toFixed(2) + " / 7";
+        document.getElementById("sarDocAvgScore").textContent = isEvaluated ? (parseFloat(sar.overallScore) || 0).toFixed(2) + " / 7" : "0.00 / 7 (รอประเมิน)";
         document.getElementById("sarExecutiveSummary").textContent = sar.executiveSummary || "-";
 
         const sarList = document.getElementById("sarDetailedCriteriaList");
         if (sarList) {
-          sarList.innerHTML = (sar.criteria || []).map(c => `
-            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-              <div class="flex items-center justify-between font-bold text-xs text-blue-900 mb-1">
-                <span>เกณฑ์ที่ ${c.id}: ${c.name}</span>
-                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">คะแนน: ${c.score} / 7</span>
+          if (!isEvaluated) {
+            sarList.innerHTML = `
+              <div class="p-6 rounded-xl bg-amber-50 border border-amber-200 text-center mb-4">
+                <p class="text-sm font-bold text-amber-900 mb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> หลักสูตรนี้ยังไม่ได้ส่งรายงานการประเมินตนเอง (SAR)</p>
+                <p class="text-xs text-amber-700">ท่านสามารถสลับไปยังแท็บ "กรอกข้อมูลรายสาขา" เพื่อบันทึกผลการประเมินและแนบหลักฐาน</p>
+                <button onclick="switchTab('department-entry')" class="mt-3 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition">เข้ากรอกข้อมูล</button>
               </div>
-              <p class="text-xs text-slate-600 mt-1">${c.content || "ไม่มีข้อมูล"}</p>
-              ${c.evidence ? `<div class="mt-2 text-[11px]"><a href="${c.evidence}" target="_blank" class="text-blue-600 hover:underline"><i class="fa-solid fa-link"></i> หลักฐานอ้างอิง</a></div>` : ""}
-            </div>
-          `).join("");
+            ` + (sar.criteria || []).map(c => `
+              <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 opacity-75">
+                <div class="flex items-center justify-between font-bold text-xs text-slate-700 mb-1">
+                  <span>เกณฑ์ที่ ${c.id}: ${c.name}</span>
+                  <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600">ยังไม่ประเมิน</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">ยังไม่มีข้อมูล</p>
+              </div>
+            `).join("");
+          } else {
+            sarList.innerHTML = (sar.criteria || []).map(c => `
+              <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+                <div class="flex items-center justify-between font-bold text-xs text-blue-900 mb-1">
+                  <span>เกณฑ์ที่ ${c.id}: ${c.name}</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">คะแนน: ${c.score} / 7</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">${c.content || "ไม่มีข้อมูล"}</p>
+                ${c.evidence ? `<div class="mt-2 text-[11px]"><a href="${c.evidence}" target="_blank" class="text-blue-600 hover:underline"><i class="fa-solid fa-link"></i> หลักฐานอ้างอิง</a></div>` : ""}
+              </div>
+            `).join("");
+          }
         }
 
         const cards = document.getElementById("criteriaCardsGrid");
         if (cards) {
-          cards.innerHTML = (sar.criteria || []).map(c => `
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-              <div class="flex items-center justify-between font-bold">
-                <span class="text-blue-900">เกณฑ์ที่ ${c.id}</span>
-                <span class="text-emerald-600 font-extrabold">${c.score} / 7</span>
+          cards.innerHTML = (sar.criteria || []).map(c => {
+            const sc = parseFloat(c.score) || 0;
+            return `
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                <div class="flex items-center justify-between font-bold">
+                  <span class="text-blue-900">เกณฑ์ที่ ${c.id}</span>
+                  <span class="${sc >= 4 ? 'text-emerald-600' : sc > 0 ? 'text-amber-600' : 'text-slate-400'} font-extrabold">
+                    ${sc > 0 ? sc + ' / 7' : 'รอประเมิน'}
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${c.name}</p>
               </div>
-              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${c.name}</p>
-            </div>
-          `).join("");
+            `;
+          }).join("");
         }
 
         renderCharts();
@@ -590,14 +637,14 @@
 
       if (cur) {
         document.getElementById("deptCurriculumName").value = cur.nameTh || "";
-        document.getElementById("deptAcademicYear").value = (sar && sar.academicYear) || "2566";
+        document.getElementById("deptAcademicYear").value = (sar && sar.academicYear) || cur.revisionYear || "2566";
         document.getElementById("deptChairEmail").value = cur.chairEmail || "";
       }
     }
 
     function renderCharts() {
       const curName = appState.selectedCurriculum;
-      const sar = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName) || (appState.allData.sarReports || [])[0];
+      const sar = getCurriculumSAR(curName);
       if (!sar || !sar.criteria) return;
 
       const scores = sar.criteria.map(c => parseFloat(c.score) || 0);
