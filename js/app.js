@@ -478,7 +478,7 @@ function calculateDepartmentCompletion() {
 function preloadDepartmentFormData(curName) {
   if (!curName) curName = appState.selectedCurriculum;
   const cur = appState.allData.curriculums.find(c => c.nameTh === curName) || appState.allData.curriculums[0];
-  const sar = appState.allData.sarReports.find(s => s.curriculumNameTh === curName);
+  const sar = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === curName);
   const std = (appState.allData.studentStats || []).find(s => s.curriculumNameTh === curName);
   const track = (appState.allData.tracking || []).find(t => t.curriculumName === curName);
 
@@ -490,44 +490,52 @@ function preloadDepartmentFormData(curName) {
   // Basic Info
   document.getElementById("deptCurriculumName").value = cur.nameTh || "";
   document.getElementById("deptDegreeLevel").value = cur.degreeLevel || "ปริญญาตรี";
-  document.getElementById("deptAcademicYear").value = (sar && sar.academicYear) || "2566";
-  document.getElementById("deptSubmittedBy").value = (track && track.submittedBy !== "-") ? track.submittedBy : "";
+  document.getElementById("deptAcademicYear").value = (sar && sar.academicYear) || cur.revisionYear || "2566";
+  document.getElementById("deptSubmittedBy").value = (track && track.submittedBy && track.submittedBy !== "-") ? track.submittedBy : "";
   document.getElementById("deptChairEmail").value = cur.chairEmail || "";
   document.getElementById("deptExecSummary").value = (sar && sar.executiveSummary) || cur.executiveSummary || "";
   document.getElementById("deptPhilosophy").value = (sar && sar.philosophy) || cur.philosophy || "";
   document.getElementById("deptObjectives").value = (sar && sar.objectives) || cur.objectives || "";
 
-  // 8 Criteria
-  if (sar && sar.criteria) {
-    sar.criteria.forEach(c => {
-      const scoreSel = document.getElementById(`dept_score_${c.id}`);
-      const contentInp = document.getElementById(`dept_content_${c.id}`);
-      const evidenceInp = document.getElementById(`dept_evidence_${c.id}`);
+  // 8 Criteria - reset or populate properly
+  for (let i = 1; i <= 8; i++) {
+    const c = (sar && sar.criteria) ? sar.criteria.find(item => item.id == i) : null;
+    const scoreSel = document.getElementById(`dept_score_${i}`);
+    const contentInp = document.getElementById(`dept_content_${i}`);
+    const evidenceInp = document.getElementById(`dept_evidence_${i}`);
 
-      if (scoreSel) scoreSel.value = Math.round(c.score) || 4;
-      if (contentInp) contentInp.value = c.content || "";
-      if (evidenceInp) evidenceInp.value = c.evidence || "";
-    });
+    if (scoreSel) scoreSel.value = c && c.score ? Math.round(c.score) : 4;
+    if (contentInp) contentInp.value = c ? (c.content || "") : "";
+    if (evidenceInp) evidenceInp.value = c ? (c.evidence || "") : "";
   }
 
   // Strengths & Improvements
   document.getElementById("deptStrengths").value = (sar && sar.strengths) || "";
   document.getElementById("deptImprovements").value = (sar && sar.improvements) || "";
 
-  // Student stats
+  // Student stats - reset to 0 if not existing
   if (std) {
     document.getElementById("deptStdY1").value = std.year1 || 0;
     document.getElementById("deptStdY2").value = std.year2 || 0;
     document.getElementById("deptStdY3").value = std.year3 || 0;
     document.getElementById("deptStdY4").value = std.year4 || 0;
     document.getElementById("deptStdYMore").value = std.yearMore || 0;
-    calculateDepartmentStudentTotal();
+  } else {
+    document.getElementById("deptStdY1").value = 0;
+    document.getElementById("deptStdY2").value = 0;
+    document.getElementById("deptStdY3").value = 0;
+    document.getElementById("deptStdY4").value = 0;
+    document.getElementById("deptStdYMore").value = 0;
   }
+  calculateDepartmentStudentTotal();
 
   // Status text & saved timestamp
   if (track) {
-    document.getElementById("deptStatusText").textContent = track.status;
-    document.getElementById("deptLastSaved").textContent = track.updatedAt ? `บันทึกเมื่อ: ${track.updatedAt}` : "ยังไม่เคยบันทึก";
+    document.getElementById("deptStatusText").textContent = track.status || "ยังไม่เริ่ม";
+    document.getElementById("deptLastSaved").textContent = track.updatedAt && track.updatedAt !== "-" ? `บันทึกเมื่อ: ${track.updatedAt}` : "ยังไม่เคยบันทึก";
+  } else {
+    document.getElementById("deptStatusText").textContent = "ยังไม่เริ่ม";
+    document.getElementById("deptLastSaved").textContent = "ยังไม่เคยบันทึก";
   }
 
   calculateDepartmentRealtimeScore();
@@ -683,10 +691,37 @@ async function submitDepartmentForm(submissionStatus) {
 /**
  * 6. Views Updates (Dashboard, Charts, SAR, Guidelines)
  */
+
+// Helper to get or generate SAR object for a specific curriculum
+function getCurriculumSAR(selectedName) {
+  const existing = (appState.allData.sarReports || []).find(s => s.curriculumNameTh === selectedName);
+  if (existing) return existing;
+
+  const cur = (appState.allData.curriculums || []).find(c => c.nameTh === selectedName);
+  return {
+    curriculumNameTh: selectedName,
+    academicYear: (cur && cur.revisionYear) || "2566",
+    isPending: true,
+    overallScore: 0,
+    executiveSummary: (cur && cur.executiveSummary) ? cur.executiveSummary : "อยู่ระหว่างการจัดทำรายงานการประเมินตนเองของหลักสูตร",
+    philosophy: (cur && cur.philosophy) ? cur.philosophy : "-",
+    objectives: (cur && cur.objectives) ? cur.objectives : "-",
+    criteria: CONFIG.AUN_QA_CRITERIA.map(c => ({
+      id: c.id,
+      name: c.title,
+      score: 0,
+      content: "",
+      evidence: ""
+    })),
+    strengths: "อยู่ระหว่างรวบรวมข้อมูลจุดแข็งของหลักสูตร",
+    improvements: "อยู่ระหว่างจัดทำแผนพัฒนาคุณภาพการศึกษา"
+  };
+}
+
 function updateSelectedCurriculumViews() {
   const selectedName = appState.selectedCurriculum;
   const currentCur = appState.allData.curriculums.find(c => c.nameTh === selectedName) || appState.allData.curriculums[0];
-  const currentSAR = appState.allData.sarReports.find(s => s.curriculumNameTh === selectedName) || appState.allData.sarReports[0];
+  const currentSAR = getCurriculumSAR(selectedName);
 
   renderDashboardStats(currentSAR);
   renderCharts(currentSAR);
@@ -698,26 +733,32 @@ function renderDashboardStats(sar) {
   if (!sar) return;
 
   const overallScore = parseFloat(sar.overallScore) || 0;
+  const isEvaluated = overallScore > 0 && !sar.isPending;
+
   document.getElementById("statOverallScore").textContent = overallScore.toFixed(2);
 
-  const scale = CONFIG.RATING_SCALE.find(s => Math.round(overallScore) === s.score) || CONFIG.RATING_SCALE[3];
   const scoreLabelEl = document.getElementById("statScoreLabel");
   if (scoreLabelEl) {
-    scoreLabelEl.innerHTML = `ระดับ: <span class="font-bold text-amber-300">${scale.label.split("-")[1] || "เป็นไปตามเกณฑ์"}</span>`;
+    if (isEvaluated) {
+      const scale = CONFIG.RATING_SCALE.find(s => Math.round(overallScore) === s.score) || CONFIG.RATING_SCALE[3];
+      scoreLabelEl.innerHTML = `ระดับ: <span class="font-bold text-amber-300">${scale.label.split("-")[1] || "เป็นไปตามเกณฑ์"}</span>`;
+    } else {
+      scoreLabelEl.innerHTML = `ระดับ: <span class="font-semibold text-slate-300">รอการประเมินตนเอง</span>`;
+    }
   }
 
-  const passingCount = (sar.criteria || []).filter(c => (parseFloat(c.score) || 0) >= 4.0).length;
+  const passingCount = isEvaluated ? (sar.criteria || []).filter(c => (parseFloat(c.score) || 0) >= 4.0).length : 0;
   document.getElementById("statPassingCriteria").textContent = passingCount;
 
   const stds = (appState.allData.studentStats || []).filter(s => s.curriculumNameTh === appState.selectedCurriculum);
   const totalStd = stds.reduce((sum, item) => sum + (parseInt(item.total) || 0), 0);
-  document.getElementById("statTotalStudents").textContent = totalStd > 0 ? totalStd.toLocaleString() : "120+";
+  document.getElementById("statTotalStudents").textContent = totalStd.toLocaleString();
 
   const facultyCount = (appState.allData.faculty || []).filter(f => f.curriculumNameTh === appState.selectedCurriculum).length;
-  document.getElementById("statFacultyCount").textContent = facultyCount > 0 ? facultyCount : "8";
+  document.getElementById("statFacultyCount").textContent = facultyCount.toString();
 
-  document.getElementById("dashboardStrengths").textContent = sar.strengths || "มีผลลัพธ์การเรียนรู้และการบริหารจัดการเป็นไปตามเกณฑ์มาตรฐาน";
-  document.getElementById("dashboardImprovements").textContent = sar.improvements || "ควรส่งเสริมการเผยแพร่ผลงานวิจัยระดับนานาชาติและพัฒนาทักษะดิจิทัลต่อเนื่อง";
+  document.getElementById("dashboardStrengths").textContent = isEvaluated ? (sar.strengths || "-") : "อยู่ระหว่างรวบรวมข้อมูลการประเมินตนเองของหลักสูตร";
+  document.getElementById("dashboardImprovements").textContent = isEvaluated ? (sar.improvements || "-") : "อยู่ระหว่างจัดทำแผนพัฒนาคุณภาพการศึกษา";
 
   const cardsContainer = document.getElementById("criteriaCardsGrid");
   if (!cardsContainer) return;
@@ -725,19 +766,24 @@ function renderDashboardStats(sar) {
   cardsContainer.innerHTML = (sar.criteria || []).map(c => {
     const score = parseFloat(c.score) || 0;
     const isPassing = score >= 4.0;
-    const statusColor = isPassing ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-amber-600 bg-amber-50 border-amber-200";
+    let statusColor = "text-slate-500 bg-slate-100 border-slate-200";
+    let scoreDisplay = "รอประเมิน";
+    if (score > 0) {
+      statusColor = isPassing ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-amber-600 bg-amber-50 border-amber-200";
+      scoreDisplay = `${score.toFixed(1)} / 7`;
+    }
 
     return `
       <div class="p-4 rounded-xl border border-slate-200/80 hover:shadow-md transition bg-slate-50/50 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">เกณฑ์ที่ ${c.id}</span>
-            <span class="text-xs font-extrabold px-2 py-0.5 rounded border ${statusColor}">
-              ${score.toFixed(1)} / 7
+            <span class="text-xs font-bold px-2 py-0.5 rounded border ${statusColor}">
+              ${scoreDisplay}
             </span>
           </div>
           <h4 class="text-xs font-bold text-slate-800 line-clamp-2 mt-1" title="${c.name}">${c.name}</h4>
-          <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${c.content || "มีการดำเนินการตามข้อกำหนดของหลักสูตรอย่างต่อเนื่อง"}</p>
+          <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${c.content || (score > 0 ? "มีการดำเนินการตามเกณฑ์" : "ยังไม่ได้ระบุรายละเอียดการดำเนินงาน")}</p>
         </div>
         <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
           <span class="text-slate-400">หลักฐาน:</span>
@@ -750,13 +796,14 @@ function renderDashboardStats(sar) {
 
 function renderCharts(sar) {
   if (!sar) {
-    sar = appState.allData.sarReports.find(s => s.curriculumNameTh === appState.selectedCurriculum) || appState.allData.sarReports[0];
+    sar = getCurriculumSAR(appState.selectedCurriculum);
   }
   if (!sar || !sar.criteria) return;
 
   const labels = sar.criteria.map(c => `เกณฑ์ ${c.id}`);
   const scores = sar.criteria.map(c => parseFloat(c.score) || 0);
   const benchmarkScores = [4, 4, 4, 4, 4, 4, 4, 4];
+  const hasScores = scores.some(s => s > 0);
 
   const radarCtx = document.getElementById("aunQaRadarChart");
   if (radarCtx) {
@@ -769,10 +816,10 @@ function renderCharts(sar) {
           {
             label: "คะแนนประเมินหลักสูตร",
             data: scores,
-            backgroundColor: "rgba(30, 58, 138, 0.25)",
-            borderColor: "rgba(30, 58, 138, 1)",
+            backgroundColor: hasScores ? "rgba(30, 58, 138, 0.25)" : "rgba(148, 163, 184, 0.15)",
+            borderColor: hasScores ? "rgba(30, 58, 138, 1)" : "rgba(148, 163, 184, 0.6)",
             borderWidth: 2,
-            pointBackgroundColor: "rgba(217, 119, 6, 1)",
+            pointBackgroundColor: hasScores ? "rgba(217, 119, 6, 1)" : "rgba(148, 163, 184, 1)",
             pointBorderColor: "#fff"
           },
           {
@@ -809,7 +856,7 @@ function renderCharts(sar) {
   const barCtx = document.getElementById("aunQaBarChart");
   if (barCtx) {
     if (appState.barChart) appState.barChart.destroy();
-    const barColors = scores.map(s => s >= 5 ? "#0284c7" : s >= 4 ? "#10b981" : s >= 3 ? "#f59e0b" : "#ef4444");
+    const barColors = scores.map(s => s >= 5 ? "#0284c7" : s >= 4 ? "#10b981" : s >= 3 ? "#f59e0b" : s > 0 ? "#ef4444" : "#cbd5e1");
 
     appState.barChart = new Chart(barCtx, {
       type: "bar",
@@ -837,8 +884,9 @@ function renderStudentChart(curriculumFilter) {
   if (!chartCanvas) return;
 
   const stats = appState.allData.studentStats || [];
-  const current = stats.find(s => s.curriculumNameTh === curriculumFilter) || stats[0] || {
-    year1: 30, year2: 28, year3: 27, year4: 25, yearMore: 2
+  const current = stats.find(s => s.curriculumNameTh === curriculumFilter) || {
+    curriculumNameTh: curriculumFilter,
+    year1: 0, year2: 0, year3: 0, year4: 0, yearMore: 0
   };
 
   if (appState.studentChart) appState.studentChart.destroy();
@@ -848,7 +896,7 @@ function renderStudentChart(curriculumFilter) {
       labels: ["ปี 1", "ปี 2", "ปี 3", "ปี 4", "> 4 ปี"],
       datasets: [{
         label: "จำนวนนักศึกษา (คน)",
-        data: [current.year1, current.year2, current.year3, current.year4, current.yearMore],
+        data: [current.year1 || 0, current.year2 || 0, current.year3 || 0, current.year4 || 0, current.yearMore || 0],
         backgroundColor: ["#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#8b5cf6"],
         borderRadius: 6
       }]
@@ -867,10 +915,12 @@ function renderStudentChart(curriculumFilter) {
 function renderSARReportView(cur, sar) {
   if (!sar) return;
 
+  const isPending = sar.isPending || (parseFloat(sar.overallScore) || 0) === 0;
+
   document.getElementById("sarDocTitle").textContent = `รายงานการประเมินตนเองตามเกณฑ์ AUN-QA`;
   document.getElementById("sarDocSubtitle").textContent = sar.curriculumNameTh || (cur ? cur.nameTh : "คณะศึกษาศาสตร์");
   document.getElementById("sarDocYear").textContent = sar.academicYear || "2566";
-  document.getElementById("sarDocAvgScore").textContent = (parseFloat(sar.overallScore) || 0).toFixed(2) + " / 7.00";
+  document.getElementById("sarDocAvgScore").textContent = isPending ? "0.00 / 7.00 (รอการประเมินตนเอง)" : (parseFloat(sar.overallScore) || 0).toFixed(2) + " / 7.00";
 
   document.getElementById("sarExecutiveSummary").textContent = sar.executiveSummary || (cur ? cur.executiveSummary : "-");
   document.getElementById("sarPhilosophy").textContent = sar.philosophy || (cur ? cur.philosophy : "-");
@@ -878,6 +928,37 @@ function renderSARReportView(cur, sar) {
 
   const listContainer = document.getElementById("sarDetailedCriteriaList");
   if (!listContainer) return;
+
+  if (isPending) {
+    listContainer.innerHTML = `
+      <div class="p-6 rounded-2xl bg-amber-50/90 border border-amber-200 text-center mb-6">
+        <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h4 class="text-base font-bold text-amber-900">หลักสูตรนี้ยังไม่ได้ส่งรายงานการประเมินตนเอง (SAR)</h4>
+        <p class="text-xs text-amber-700 mt-1 max-w-lg mx-auto">
+          ขณะนี้ฐานข้อมูลยังไม่มีผลการประเมิน 8 เกณฑ์ของหลักสูตร ${sar.curriculumNameTh} อาจารย์ผู้รับผิดชอบหลักสูตรสามารถเข้ากรอกข้อมูลและแนบหลักฐานอ้างอิงได้ที่เมนู "กรอกข้อมูลรายสาขา"
+        </p>
+        <button onclick="editCurriculumData('${sar.curriculumNameTh}')" class="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> เข้ากรอกข้อมูลหลักสูตรนี้ทันที
+        </button>
+      </div>
+    ` + (sar.criteria || []).map(c => `
+      <div class="border border-slate-200 rounded-xl p-5 bg-white opacity-80">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-sm">${c.id}</span>
+            <h4 class="text-sm font-bold text-slate-700">${c.name}</h4>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+            ยังไม่ได้ประเมิน
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">ยังไม่มีข้อมูลการดำเนินการ</p>
+      </div>
+    `).join("");
+    return;
+  }
 
   listContainer.innerHTML = (sar.criteria || []).map(c => {
     const score = parseFloat(c.score) || 0;
