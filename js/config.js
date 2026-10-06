@@ -130,26 +130,6 @@ const CONFIG = {
         overallScore: 4.63,
         strengths: "1. คณาจารย์มีความเชี่ยวชาญและทุ่มเท\n2. บัณฑิตสอบบรรจุครูผู้ช่วยและได้รับใบประกอบวิชาชีพในอัตราสูงมาก\n3. มีเครือข่ายโรงเรียนร่วมพัฒนาวิชาชีพครูที่เข้มแข็ง",
         improvements: "1. ควรเพิ่มการตีพิมพ์ผลงานวิจัยของอาจารย์ในฐานข้อมูลระดับนานาชาติ (Scopus/TCI1)\n2. ปรับปรุงระบบห้องปฏิบัติการมัลติมีเดียสำหรับการสอนออนไลน์"
-      },
-      {
-        curriculumNameTh: "หลักสูตรการศึกษาบัณฑิต สาขาวิชาคณิตศาสตร์",
-        academicYear: "2566",
-        executiveSummary: "หลักสูตรจัดการเรียนการสอนแบบ STEM บรรลุตามมาตรฐานของคุรุสภาและกระทรวง อว.",
-        philosophy: "คิดอย่างเป็นระบบ จัดการเรียนรู้คณิตศาสตร์อย่างสร้างสรรค์เพื่อศตวรรษที่ 21",
-        objectives: "ผลิตครูคณิตศาสตร์ที่มีความเชี่ยวชาญด้านเนื้อหาและการจัดกระบวนการคิดเชิงวิเคราะห์",
-        criteria: [
-          { id: 1, name: "ผลการเรียนรู้ที่คาดหวัง (PLOs)", content: "กำหนด PLOs สอดคล้องกับมาตรฐานสะเต็มศึกษา", evidence: "https://drive.google.com/drive/folders/math-c1", score: 4.6 },
-          { id: 2, name: "โครงสร้างและเนื้อหาหลักสูตร", content: "โครงสร้างหลักสูตรทันสมัย มีวิชาเทคโนโลยีคณิตศาสตร์", evidence: "https://drive.google.com/drive/folders/math-c2", score: 4.5 },
-          { id: 3, name: "การจัดการเรียนการสอนเน้นผู้เรียน", content: "เน้นการทดลองและแก้ปัญหาโจทย์ประยุกต์จริง", evidence: "https://drive.google.com/drive/folders/math-c3", score: 4.5 },
-          { id: 4, name: "การประเมินผู้เรียน", content: "ประเมินสมรรถนะการจัดกิจกรรมการเรียนรู้คณิตศาสตร์", evidence: "https://drive.google.com/drive/folders/math-c4", score: 4.4 },
-          { id: 5, name: "คุณภาพอาจารย์", content: "อาจารย์ทุกคนมีงานวิจัยและตีพิมพ์สม่ำเสมอ", evidence: "https://drive.google.com/drive/folders/math-c5", score: 4.8 },
-          { id: 6, name: "การบริการและสนับสนุนนักศึกษา", content: "มีระบบติวสอบและให้ทุนการศึกษาแก่นักศึกษาเรียนดี", evidence: "https://drive.google.com/drive/folders/math-c6", score: 4.4 },
-          { id: 7, name: "สิ่งอำนวยความสะดวก", content: "ห้องปฏิบัติการคอมพิวเตอร์และซอฟต์แวร์ Geometer's Sketchpad/GeoGebra", evidence: "https://drive.google.com/drive/folders/math-c7", score: 4.6 },
-          { id: 8, name: "ผลลัพธ์การดำเนินงาน", content: "อัตราการได้งานทำของบัณฑิตร้อยละ 90", evidence: "https://drive.google.com/drive/folders/math-c8", score: 4.5 }
-        ],
-        overallScore: 4.54,
-        strengths: "นักศึกษามีทักษะการคำนวณและการใช้เทคโนโลยีคณิตศาสตร์ยอดเยี่ยม",
-        improvements: "เพิ่มความร่วมมือกับโรงเรียนเครือข่ายในการจัดค่ายคณิตศาสตร์สัญจร"
       }
     ],
     studentStats: [
@@ -185,7 +165,7 @@ const CONFIG = {
         referenceUrl: "https://scopus.com/sample-article-3"
       }
     ],
-    // ข้อมูลจำลองสำหรับการติดตามสถานะของแต่ละสาขา
+    // ข้อมูลการติดตามสถานะของแต่ละสาขาวิชา (ตรงตามฐานข้อมูล Google Sheet)
     tracking: [
       {
         curriculumName: "หลักสูตรการศึกษาบัณฑิต สาขาวิชาการสอนภาษาไทย",
@@ -197,60 +177,60 @@ const CONFIG = {
         criteriaFilledCount: "8/8",
         overallScore: 4.63,
         submittedBy: "ผศ.ดร.สมชาย ใจดี (ประธานหลักสูตร)",
-        updatedAt: "2026-10-04 14:30",
-        notes: "เอกสารครบถ้วนสมบูรณ์ พร้อมรับการตรวจประเมิน"
+        updatedAt: "2026-10-06 14:30",
+        notes: "เอกสารและหลักฐานครบถ้วนสมบูรณ์ พร้อมรับการตรวจประเมิน"
       },
       {
         curriculumName: "หลักสูตรการศึกษาบัณฑิต สาขาวิชาคณิตศาสตร์",
         degreeLevel: "ปริญญาตรี",
         chairEmail: "math_edu@university.ac.th",
-        status: "ส่งรายงานแล้ว",
-        completionPercent: 100,
-        evidenceCount: "8/8",
-        criteriaFilledCount: "8/8",
-        overallScore: 4.54,
+        status: "ยังไม่เริ่ม",
+        completionPercent: 0,
+        evidenceCount: "0/8",
+        criteriaFilledCount: "0/8",
+        overallScore: 0,
         submittedBy: "ผศ.ดร.กิตติพงษ์ วิริยะกิจ",
-        updatedAt: "2026-10-03 16:15",
-        notes: "ส่งรายงานและแนบลิงก์หลักฐานครบถ้วน"
+        updatedAt: "-",
+        notes: "รอสาขาวิชาเข้ากรอกรายงานการประเมินตนเอง (SAR)"
       },
       {
         curriculumName: "หลักสูตรการศึกษามหาบัณฑิต สาขาวิชาการบริหารการศึกษา",
         degreeLevel: "ปริญญาโท",
         chairEmail: "admin_edu@university.ac.th",
-        status: "กำลังกรอกข้อมูล",
-        completionPercent: 65,
-        evidenceCount: "4/8",
-        criteriaFilledCount: "6/8",
-        overallScore: 5.10,
-        submittedBy: "รศ.ดร.นพพร ปัญญาเลิศ",
-        updatedAt: "2026-10-05 09:20",
-        notes: "อยู่ระหว่างรวบรวมหลักฐานเกณฑ์ที่ 5 และ 7"
+        status: "ยังไม่เริ่ม",
+        completionPercent: 0,
+        evidenceCount: "0/8",
+        criteriaFilledCount: "0/8",
+        overallScore: 0,
+        submittedBy: "-",
+        updatedAt: "-",
+        notes: "รอสาขาวิชาเข้ากรอกรายงานการประเมินตนเอง (SAR)"
       },
       {
         curriculumName: "หลักสูตรการศึกษาบัณฑิต สาขาวิชาภาษาอังกฤษ",
         degreeLevel: "ปริญญาตรี",
         chairEmail: "english_edu@university.ac.th",
-        status: "กำลังกรอกข้อมูล",
-        completionPercent: 40,
-        evidenceCount: "2/8",
-        criteriaFilledCount: "4/8",
-        overallScore: 4.50,
-        submittedBy: "อ.ดร.สุภาพร สุขสม",
-        updatedAt: "2026-10-02 11:00",
-        notes: "บันทึกข้อมูลหลักสูตรและเกณฑ์ 1-3 แล้ว"
+        status: "ยังไม่เริ่ม",
+        completionPercent: 0,
+        evidenceCount: "0/8",
+        criteriaFilledCount: "0/8",
+        overallScore: 0,
+        submittedBy: "-",
+        updatedAt: "-",
+        notes: "รอสาขาวิชาเข้ากรอกรายงานการประเมินตนเอง (SAR)"
       },
       {
         curriculumName: "หลักสูตรการศึกษาดุษฎีบัณฑิต สาขาวิชาหลักสูตรและการเรียนการสอน",
         degreeLevel: "ปริญญาเอก",
         chairEmail: "phd_ci@university.ac.th",
         status: "ยังไม่เริ่ม",
-        completionPercent: 10,
+        completionPercent: 0,
         evidenceCount: "0/8",
         criteriaFilledCount: "0/8",
         overallScore: 0,
         submittedBy: "-",
         updatedAt: "-",
-        notes: "รอนัดประชุมคณะกรรมการเพื่อประเมินตนเอง"
+        notes: "รอสาขาวิชาเข้ากรอกรายงานการประเมินตนเอง (SAR)"
       }
     ]
   }
